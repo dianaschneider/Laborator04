@@ -1,7 +1,9 @@
 package ro.pub.cs.systems.eim.lab04.contactsmanager;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -35,10 +38,20 @@ public class ContactsManagerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts_manager);
+        numberEditText = (EditText) findViewById(R.id.numberEditText);
+        //Get intent data
+        Intent intent = getIntent();
+        if (intent != null) {
+            String phoneNumber = intent.getStringExtra("ro.pub.cs.systems.eim.lab04.contactsmanager.PHONE_NUMBER_KEY");
+            if (phoneNumber != null) {
+                numberEditText.setText(phoneNumber);
+            } else {
+                Toast.makeText(this, getResources().getString(R.string.phone_error), Toast.LENGTH_LONG).show();
+            }
+        }
 
         showFieldsButton = (Button) findViewById(R.id.SHOW);
         nameEditText = (EditText) findViewById(R.id.nameEditText);
-        numberEditText = (EditText) findViewById(R.id.numberEditText);
         emailEditText = (EditText) findViewById(R.id.emailEditText);
         addressEditText = (EditText) findViewById(R.id.addressEditText);
         saveButton = (Button) findViewById(R.id.SAVE);
@@ -57,6 +70,7 @@ public class ContactsManagerActivity extends AppCompatActivity {
         showFieldsButton.setOnClickListener(clickListener);
         saveButton.setOnClickListener(clickListener);
         cancelButton.setOnClickListener(clickListener);
+
     }
 
     class ClickListener implements View.OnClickListener {
@@ -126,12 +140,24 @@ public class ContactsManagerActivity extends AppCompatActivity {
                     intent.putParcelableArrayListExtra(ContactsContract.Intents.Insert.DATA, contactData);
 
                     //launch the intent
-                    startActivity(intent);
+                    startActivityForResult(intent, Constants.CONTACTS_MANAGER_REQUEST_CODE);
                     break;
                 case R.id.CANCEL:
+                    setResult(Activity.RESULT_CANCELED, new Intent());
                     finish();
                     break;
             }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        switch (requestCode) {
+            case Constants.CONTACTS_MANAGER_REQUEST_CODE:
+                setResult(resultCode, new Intent());
+                finish();
+                break;
         }
     }
 }
